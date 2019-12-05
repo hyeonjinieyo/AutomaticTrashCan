@@ -1,0 +1,64 @@
+#include <Servo.h>  //서보모터 헤더파일
+//#include <Wire.h>                        // i2C 통신을 위한 라이브러리
+//#include <LiquidCrystal_I2C.h>        //
+
+int angle = 0; //각도 저장변수
+int sen = A0; //적외선 센서 핀
+int servo = 8; //Servo 핀 설정
+int man = 7;
+
+Servo myservo;  //Servo에 따르는 myservo 라는 객체명을 정한다
+void setup()
+{
+  Serial.begin(9600);    // 시리얼 통신을 시작, 통신속도는 (9600)
+  myservo.attach(8);  //myservo는 8번핀에 의해 컨트롤 됨을 설정.
+  pinMode(man, INPUT);
+  pinMode(sen, INPUT); //// 장애물 감지 센서는 감지를 하고 아두이노로 신호를 보내주는 것이므로 입력모드로 설정해야하며,
+  pinMode(servo, OUTPUT); // servo는 아두이노로부터 신호를 받아 출력하는 것이므로 출력모드로 설정해야한다.
+}
+
+void loop() {
+  int a = digitalRead(man);                                              // 정수형 변수 a를 생성한 후 디지털 3번핀에 입력되는
+  int sensorValue = analogRead(sen);
+
+  if (a == HIGH) {                                                        // a가 HIGH (1)이면
+    Serial.println("사람이 있다");              // 시리얼 모니터에 Detection (HIGH Signal을 입력)
+    Serial.println(sensorValue);
+  
+
+    if (sensorValue <= 900)
+    {
+      digitalWrite(servo, HIGH);
+      Serial.println("금속임");
+      // servo 에 HIGH 신호를 보내 모터를 켠다.
+      for (int i = 0; i < 90; i++) {
+        myservo.write(i);
+        delay(10); // 속도제어로 알고있습니다.
+      }
+    delay(2000);
+      for (int i = 90; i > 0; i--) {
+        myservo.write(i);
+        delay(10); // 속도제어로 알고있습니다.
+      }
+
+    }
+    else {
+      Serial.println("금속아님");// 그게 아니라면 (a가 HIGH가 아니라면)
+      delay(5000); // 5초간 대기
+      for (int i = 0; i < 90; i++) {
+        myservo.write(i);
+        delay(10);
+      }
+      delay(2000);
+      for (int i = 90; i > 0; i--) {
+        myservo.write(i);
+        delay(10);
+      }
+
+    }
+  }
+  else {
+    //delay(300);
+    Serial.println("사람이 없다");                  // 시리얼 모니터에 Nothing (LOW Signal)을 입력
+  }
+}

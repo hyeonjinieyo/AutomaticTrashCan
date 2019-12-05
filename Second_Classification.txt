@@ -1,0 +1,102 @@
+#include <Stepper.h>
+
+int SOUND_SENSOR = A0;
+int led = 7;
+int threshold = 100; //감도조절
+int Sensor_value;
+
+const int stepsPerRevolution = 2048;
+Stepper myStepper(stepsPerRevolution, 8, 6, 7, 5);
+
+int trigPin = 12;
+int echoPin = 13;
+
+void setup() {
+
+  Serial.begin(9600); // 시리얼모니터 출력
+
+  pinMode(SOUND_SENSOR, INPUT);
+
+  pinMode(led, OUTPUT);
+
+  myStepper.setSpeed(14);
+
+  pinMode(echoPin, INPUT);   // echoPin 입력
+  pinMode(trigPin, OUTPUT);  // trigPin 출력
+
+}
+
+
+
+void loop() {
+  Sensor_value = analogRead(A0);
+  long duration, distance;
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+  duration = pulseIn(echoPin, HIGH);    // echoPin 이 HIGH를 유지한 시간을 저장 한다.
+  distance = ((float)(340 * duration) / 1000) / 2;
+
+  Serial.print("Duration:");   //시리얼모니터에 Echo가 HIGH인 시간을 표시
+  Serial.print(duration);
+  Serial.print("\nDIstance:"); // 물체와 초음파 센서간 거리를 표시
+  Serial.print(distance);
+  Serial.println("mm\n");
+
+
+  delay(10);
+  //Sensor_value = analogRead(A0);   // Analog PIN A0에서 입력값을 읽어와서 Sensor_value에 저장
+
+  Serial.println(Sensor_value); // 시리얼모니터에 감도표시
+  
+  /*if (Sensor_value >= 30)
+  { delay(10000);
+  }*/
+
+  
+  if (distance > 0 && distance <= 150)
+  {
+    delay(3000);
+    //인식 시작
+     digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+    duration = pulseIn(echoPin, HIGH); 
+    distance = ((float)(340 * duration) / 1000) / 2;
+    if (distance > 0 && distance <= 150)
+    {
+
+      delay(3000);
+      //플라스틱
+      if (Sensor_value >= 500) {
+
+        digitalWrite(led, HIGH); //Turn ON Led
+
+        myStepper.step(stepsPerRevolution / 4);
+        delay(3000);
+        myStepper.step(stepsPerRevolution / 4 * 3);
+        delay(100);
+      }
+      //종이, 휴지
+      else if (Sensor_value < 30 && Sensor_value > 10)
+      {
+        myStepper.step(stepsPerRevolution / 2);
+        delay(3000);
+        myStepper.step(stepsPerRevolution / 2);
+        delay(100);
+      }
+      //^^
+      /* else if (Sensor_value > 800 && Sensor_value <= 500)
+        {
+
+        }
+        else {
+
+         digitalWrite(led, LOW); // Turn OFF Led
+         //myStepper.step(0);
+
+        }
+      */
+    }
+  }
+}
