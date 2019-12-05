@@ -1,0 +1,2 @@
+# AutomaticTrashCan
+AutomaticTrashCan
